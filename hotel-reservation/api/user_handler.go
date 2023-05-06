@@ -2,8 +2,8 @@ package api
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/olich538/fulltimegodev/hotel-reservation/hotel-reservation/db"
-	"github.com/olich538/fulltimegodev/hotel-reservation/hotel-reservation/types"
+	"github.com/olich538/fulltimegodev/hotel-reservation/db"
+	"github.com/olich538/fulltimegodev/hotel-reservation/types"
 )
 
 type UserHandlerStore struct {
@@ -43,6 +43,9 @@ func (h *UserHandlerStore) HandlePostUser(c *fiber.Ctx) error {
 	var params types.CreateUserParams
 	if err := c.BodyParser(&params); err != nil {
 		return err
+	}
+	if errors := params.ValidateUserParams(); len(errors) > 0 {
+		return c.JSON(errors)
 	}
 	user, err := types.NewUserFromParams(params)
 	if err != nil {
