@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http/httptest"
 	"testing"
@@ -65,17 +64,28 @@ func TestCreateUser(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	// var m map[string]any
-	// err = json.NewDecoder(resp.Request.Body).Decode(&m)
+
+	var user types.User
+	json.NewDecoder(resp.Body).Decode(&user)
+	if user.FirstName != params.FirstName {
+		t.Errorf("expected firstname %s but got %s", params.FirstName, user.FirstName)
+	}
+	if user.LastName != params.LastName {
+		t.Errorf("expected lastname %s but got %s", params.LastName, user.LastName)
+	}
+	if len(user.EncryptedPassword) > 0 {
+		t.Errorf("expected Encrypted Password not to be included in json")
+	}
+	if user.Email != params.Email {
+		t.Errorf("expected email %s but got %s", params.Email, user.Email)
+	}
+	if len(user.ID) == 0 {
+		t.Errorf("expecting user id to be set")
+	}
+	// bb, err := io.ReadAll(resp.Body)
 	// if err != nil {
 	// 	t.Error(err)
 	// }
-	// fmt.Println(resp.Status)
-	bb, err := io.ReadAll(resp.Body)
-	if err != nil {
-		t.Error(err)
-	}
 
-	fmt.Println(string(bb))
-
+	fmt.Println(user)
 }
