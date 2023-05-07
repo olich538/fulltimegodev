@@ -66,7 +66,7 @@ func main() {
 	flag.Parse()
 
 	app := fiber.New(config)
-	userHandler := api.NewUserHandler(db.NewMongoUserStore(client))
+	userHandler := api.NewUserHandler(db.NewMongoUserStore(client, dbName))
 
 	apiv1 := app.Group("/api/v1")
 	apiv1.Get("/user", userHandler.HandleGetUsers)
