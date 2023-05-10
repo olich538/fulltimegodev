@@ -42,7 +42,7 @@ func NewMongoUserStore(client *mongo.Client, dbname string) *MongoUserStore {
 
 func (s *MongoUserStore) UpdateUser(ctx context.Context, filter bson.M, params types.UpdateUserParams) error {
 	update := bson.D{
-		{"$set", params.ToBSON()},
+		{Key: "$set", Value: params.ToBSON()},
 	}
 	res, err := s.coll.UpdateOne(ctx, filter, update)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/olich538/fulltimegodev/hotel-reservation/types"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -18,9 +19,18 @@ type MongoHotelStore struct {
 	coll   *mongo.Collection
 }
 
-func NewMongoHotelStore(c *mongo.Client, dbname string) *MongoHotelStore {
+func NewMongoHotelStore(client *mongo.Client, dbname string) *MongoHotelStore {
 	return &MongoHotelStore{
-		client: c,
-		coll:   c.Database(dbname).Collection(hotelColl),
+		client: client,
+		coll:   client.Database(dbname).Collection(hotelColl),
 	}
+}
+
+func (s *MongoHotelStore) InsertHotel(ctx context.Context, hotel *types.Hotel) (*types.Hotel, error) {
+	res, err := s.coll.InsertOne(ctx, hotel)
+	if err != nil {
+		return nil, err
+	}
+	hotel.ID = res.InsertedID.(primitive.ObjectID)
+	return hotel, nil
 }
