@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -37,37 +36,29 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(client)
-	// ctx := context.Background()
-	// coll := client.Database(dbName).Collection(userCollection)
-	// user := types.User{
-	// 	FirstName: "James",
-	// 	LastName:  "Mott",
-	// }
-
-	// _, err = coll.InsertOne(ctx, user)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// var james types.User
-	// if err := coll.FindOne(ctx, bson.M{}).Decode(&james); err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(james)
 
 	listenAddr := flag.String("listenAddr", ":5000", "The listen address of the API server")
 	flag.Parse()
 
-	app := fiber.New(config)
-	userHandler := api.NewUserHandler(db.NewMongoUserStore(client, db.DBNAME))
+	// handler initialization
+	var (
+		userHandler  = api.NewUserHandler(db.NewMongoUserStore(client, db.DBNAME))
+		hotelstore   = db.NewMongoHotelStore(client)
+		roomStore    = db.NewMongoRoomStore(client, hotelstore)
+		hotelHandler = api.NewHotelHandler(hotelstore, roomStore)
+		app          = fiber.New(config)
+		apiv1        = app.Group("/api/v1")
+	)
 
-	apiv1 := app.Group("/api/v1")
+	// user handlers
 	apiv1.Get("/user", userHandler.HandleGetUsers)
 	apiv1.Get("/user/:id", userHandler.HandleGetUser)
 	apiv1.Post("/user", userHandler.HandlePostUser)
 	apiv1.Delete("/user/:id", userHandler.HandleDeleteUser)
 	apiv1.Put("/user/:id", userHandler.HandlePutUser)
+
+	//hotel handlers
+	apiv1.Get("/hotel", hotelHandler.HandleGetHotels)
 
 	app.Listen(*listenAddr)
 }
