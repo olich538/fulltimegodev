@@ -65,6 +65,6 @@ func init() {
 		log.Fatal(err)
 	}
 
-	hotelStore = db.NewMongoHotelStore(client)
+	// hotelStore = db.NewMongoHotelStore(client)
 	// roomStore = db.NewMongoRoomStore(client, hotelStore)
 }
