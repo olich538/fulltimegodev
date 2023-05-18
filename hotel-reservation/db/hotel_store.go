@@ -15,6 +15,7 @@ type HotelStore interface {
 	InsertHotel(context.Context, *types.Hotel) (*types.Hotel, error)
 	Update(context.Context, bson.M, bson.M) error
 	GetHotels(context.Context, bson.M) ([]*types.Hotel, error)
+	GetRooms(context.Context, bson.M) ([]*types.Room, error)
 }
 
 type MongoHotelStore struct {

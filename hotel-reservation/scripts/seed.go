@@ -27,10 +27,10 @@ func seedHotel(name string, location string, rating int) {
 	}
 
 	rooms := []types.Room{
-		{Type: types.SeaSideRoomType,
-			BasePrice: 88.6},
-		{Type: types.DeluxRoomType,
-			BasePrice: 199.6},
+		{Size: "normal",
+			Price: 88.6},
+		{Size: "small",
+			Price: 222.6},
 	}
 
 	inserteHotel, err := hotelStore.InsertHotel(ctx, &hotel)
@@ -66,5 +66,5 @@ func init() {
 	}
 
 	hotelStore = db.NewMongoHotelStore(client)
-	roomStore = db.NewMongoRoomStore(client, hotelStore)
+	// roomStore = db.NewMongoRoomStore(client, hotelStore)
 }

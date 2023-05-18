@@ -6,10 +6,8 @@ const (
 	TEST_DBNAME = "hotel-reservation-test"
 )
 
-// func ToObjectID(id string) (primitive.ObjectID, error) {
-// 	oid, err := primitive.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	return oid, nil
-// }
+type Store struct {
+	User  UserStore
+	Hotel HotelStore
+	Room  RoomStore
+}
