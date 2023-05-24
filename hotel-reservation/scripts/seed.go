@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/olich538/fulltimegodev/hotel-reservation/db"
@@ -15,6 +16,7 @@ var (
 	client     *mongo.Client
 	roomStore  db.RoomStore
 	hotelStore db.HotelStore
+	userStore  db.UserStore
 	ctx        = context.Background()
 )
 
@@ -55,11 +57,27 @@ func seedHotel(name string, location string, rating int) {
 	}
 
 }
-
+func seedUser(fname, lname, email string) {
+	user, err := types.NewUserFromParams(types.CreateUserParams{
+		Email:     email,
+		FirstName: fname,
+		LastName:  lname,
+		Password:  "super_secure_password",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = userStore.InsertUser(ctx, user)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("created user:", user.Email)
+}
 func main() {
 	seedHotel("Beluccia", "France", 4)
 	seedHotel("The cozy", "Spain", 3)
 	seedHotel("Kyiv", "Ukraine", 3)
+	seedUser("Sunal", "Booker", "sunario@gmek.com")
 
 }
 
@@ -74,5 +92,6 @@ func init() {
 	}
 
 	hotelStore = db.NewMongoHotelStore(client)
+	userStore = db.NewMongoUserStore(client)
 	roomStore = db.NewMongoRoomStore(client, hotelStore)
 }

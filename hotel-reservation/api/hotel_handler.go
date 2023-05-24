@@ -7,10 +7,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// has store struct stores (userStore, hotelStore, roomStore)
 type HotelHandler struct {
 	store *db.Store
 }
 
+// constructor
 func NewHotelHandler(store *db.Store) *HotelHandler {
 	return &HotelHandler{
 		store: store,
