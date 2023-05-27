@@ -52,8 +52,8 @@ func (p CreateUserParams) ValidateUserParams() map[string]string {
 		errors["password"] = fmt.Sprintf("password len should be at least %d characters", minPasswordLen)
 	}
 	if !isValidEmail(p.Email) {
-		errors["email"] = fmt.Sprintf("email is invalid")
-		// return errors
+		errors["email"] = fmt.Sprintf("email %s is invalid", p.Email)
+
 	}
 	return errors
 }
@@ -61,6 +61,10 @@ func (p CreateUserParams) ValidateUserParams() map[string]string {
 func isValidEmail(e string) bool {
 	emailRgx := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	return emailRgx.MatchString(e)
+}
+
+func IsValidPassword(encpw, pw string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(encpw), []byte(pw)) == nil
 }
 
 type User struct {
