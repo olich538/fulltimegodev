@@ -29,6 +29,7 @@ func (h *UserHandlerStore) HandleDeleteUser(c *fiber.Ctx) error {
 	}
 	return c.JSON(map[string]string{"deleted": userID})
 }
+
 func (h *UserHandlerStore) HandlePutUser(c *fiber.Ctx) error {
 	var (
 		// values bson.M
@@ -42,7 +43,6 @@ func (h *UserHandlerStore) HandlePutUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(&params); err != nil {
 		return err
 	}
-
 	filter := bson.M{"_id": oid}
 	if err := h.userStore.UpdateUser(c.Context(), filter, params); err != nil {
 		return err
@@ -63,6 +63,7 @@ func (h *UserHandlerStore) HandleGetUser(c *fiber.Ctx) error {
 	}
 	return c.JSON(user)
 }
+
 func (h *UserHandlerStore) HandleGetUsers(c *fiber.Ctx) error {
 	// u := types.User{
 	// 	FirstName: "James",
@@ -87,7 +88,6 @@ func (h *UserHandlerStore) HandlePostUser(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-
 	insertedUser, err := h.userStore.InsertUser(c.Context(), user)
 	if err != nil {
 		return err

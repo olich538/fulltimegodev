@@ -37,10 +37,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	listenAddr := flag.String("listenAddr", ":5000", "The listen address of the API server")
 	flag.Parse()
-
 	// handler initialization
 	var (
 		hotelstore = db.NewMongoHotelStore(client)
@@ -58,20 +56,17 @@ func main() {
 		auth         = app.Group("/api")
 		apiv1        = app.Group("/api/v1", middleware.JWTAuthentication)
 	)
-
 	// auth
 	auth.Post("/auth", authHandler.HandleAuthenticate)
-
 	// user handlers
 	apiv1.Get("/user", userHandler.HandleGetUsers)
 	apiv1.Get("/user/:id", userHandler.HandleGetUser)
 	apiv1.Post("/user", userHandler.HandlePostUser)
 	apiv1.Delete("/user/:id", userHandler.HandleDeleteUser)
 	apiv1.Put("/user/:id", userHandler.HandlePutUser)
-
 	//hotel handlers
 	apiv1.Get("/hotel", hotelHandler.HandleGetHotels)
 	apiv1.Get("/hotel/:id/rooms", hotelHandler.HandleGetRooms)
-	apiv1.Get("/hotel/:id", hotelHandler.HandleGetHotelByID)
+	apiv1.Get("/hotel/:id", hotelHandler.HandleGetHotel)
 	app.Listen(*listenAddr)
 }
