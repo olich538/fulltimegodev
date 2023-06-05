@@ -26,13 +26,11 @@ func NewRoomHandler(store *db.Store) *RoomHandler {
 		store: store,
 	}
 }
-
 func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	var params BookRoomParams
 	if err := c.BodyParser(&params); err != nil {
 		return err
 	}
-
 	roomID, err := primitive.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
 		return err
@@ -51,6 +49,12 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 		TillDate:   params.TillDate,
 		NumPersons: params.NumPersons,
 	}
+
+	inserted, err := h.store.Booking.InsertBooking(c.Context(), &booking)
+	if err != nil {
+		return err
+	}
+
 	fmt.Printf("%+v/n", booking)
-	return nil
+	return c.JSON(inserted)
 }

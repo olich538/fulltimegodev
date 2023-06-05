@@ -28,12 +28,10 @@ type AuthParams struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
-
 type AuthResponse struct {
 	User  *types.User `json:"user"`
 	Token string      `json:"token"`
 }
-
 type genericResponce struct {
 	Type string `json: "type"`
 	Msg  string `json: "msg"`
@@ -69,7 +67,6 @@ func (h *AuthHandler) HandleAuthenticate(c *fiber.Ctx) error {
 	if !types.IsValidPassword(user.EncryptedPassword, params.Password) {
 		return invalidCredentials(c)
 	}
-
 	// err = bcrypt.CompareHashAndPassword([]byte(user.EncryptedPassword), []byte(authParams.Password))
 	// if err != nil {
 	// 	return fmt.Errorf("invalid credentials")

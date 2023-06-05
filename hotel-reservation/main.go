@@ -46,14 +46,16 @@ func main() {
 	flag.Parse()
 	// handler initialization
 	var (
-		hotelstore = db.NewMongoHotelStore(client)
-		roomStore  = db.NewMongoRoomStore(client, hotelstore)
-		userStore  = db.NewMongoUserStore(client)
-		app        = fiber.New(config)
-		store      = &db.Store{
-			Hotel: hotelstore,
-			Room:  roomStore,
-			User:  userStore,
+		hotelstore   = db.NewMongoHotelStore(client)
+		roomStore    = db.NewMongoRoomStore(client, hotelstore)
+		userStore    = db.NewMongoUserStore(client)
+		bookingStore = db.NewMongoBookingStore(client)
+		app          = fiber.New(config)
+		store        = &db.Store{
+			Hotel:   hotelstore,
+			Room:    roomStore,
+			User:    userStore,
+			Booking: bookingStore,
 		}
 		hotelHandler = api.NewHotelHandler(store)
 		userHandler  = api.NewUserHandler(userStore)
