@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/olich538/fulltimegodev/hotel-reservation/db"
 	"github.com/olich538/fulltimegodev/hotel-reservation/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -18,6 +19,14 @@ type BookRoomParams struct {
 	FromDate   time.Time `json:"fromDate"`
 	TillDate   time.Time `json:"tillDate"`
 	NumPersons int       `json:"numPersons"`
+}
+
+func (p BookRoomParams) validate() error {
+	now := time.Now()
+	if now.After(p.FromDate) || now.After(p.TillDate) {
+		return fmt.Errorf("cannot book room in the past")
+	}
+	return nil
 }
 
 // constructor
@@ -31,6 +40,9 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 	if err := c.BodyParser(&params); err != nil {
 		return err
 	}
+	if err := params.validate(); err != nil {
+		return err
+	}
 	roomID, err := primitive.ObjectIDFromHex(c.Params("id"))
 	if err != nil {
 		return err
@@ -40,6 +52,25 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(genericResponce{
 			Type: "error",
 			Msg:  "internal server error",
+		})
+	}
+	where := bson.M{
+		"fromDate": bson.M{
+			"$gte": params.FromDate,
+		},
+		"tillDate": bson.M{
+			"$lte": params.TillDate,
+		},
+	}
+	bookings, err := h.store.Booking.GetBookings(c.Context(), where)
+	if err != nil {
+		return err
+	}
+
+	if len(bookings) > 0 {
+		return c.Status(http.StatusBadRequest).JSON(genericResponce{
+			Type: "error",
+			Msg:  fmt.Sprintf("room %s already booked", c.Params("id")),
 		})
 	}
 	booking := types.Booking{
