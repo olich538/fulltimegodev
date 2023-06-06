@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -54,25 +55,18 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 			Msg:  "internal server error",
 		})
 	}
-	where := bson.M{
-		"fromDate": bson.M{
-			"$gte": params.FromDate,
-		},
-		"tillDate": bson.M{
-			"$lte": params.TillDate,
-		},
-	}
-	bookings, err := h.store.Booking.GetBookings(c.Context(), where)
+
+	ok, err = h.isRoomAvailiableForBooking(c.Context(), roomID, params)
 	if err != nil {
 		return err
 	}
-
-	if len(bookings) > 0 {
+	if !ok {
 		return c.Status(http.StatusBadRequest).JSON(genericResponce{
 			Type: "error",
 			Msg:  fmt.Sprintf("room %s already booked", c.Params("id")),
 		})
 	}
+
 	booking := types.Booking{
 		RoomID:     roomID,
 		UserID:     user.ID,
@@ -86,6 +80,24 @@ func (h *RoomHandler) HandleBookRoom(c *fiber.Ctx) error {
 		return err
 	}
 
-	fmt.Printf("%+v/n", booking)
 	return c.JSON(inserted)
+}
+
+func (h *RoomHandler) isRoomAvailiableForBooking(ctx context.Context, roomID primitive.ObjectID, params BookRoomParams) (bool, error) {
+	where := bson.M{
+		"roomID": roomID,
+		"fromDate": bson.M{
+			"$gte": params.FromDate,
+		},
+		"tillDate": bson.M{
+			"$lte": params.TillDate,
+		},
+	}
+	bookings, err := h.store.Booking.GetBookings(ctx, where)
+	if err != nil {
+		return false, err
+	}
+	ok := len(bookings) == 0
+	return ok, nil
+
 }
