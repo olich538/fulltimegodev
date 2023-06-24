@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/olich538/fulltimegodev/hotel-reservation/api"
 	"github.com/olich538/fulltimegodev/hotel-reservation/db"
 	"github.com/olich538/fulltimegodev/hotel-reservation/types"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -50,10 +51,11 @@ func seedHotel(name string, location string, rating int) {
 
 	for _, room := range rooms {
 		room.HotelID = inserteHotel.ID
-		_, err := roomStore.InsertRoom(ctx, &room)
+		insertedRoom, err := roomStore.InsertRoom(ctx, &room)
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println(insertedRoom.ID)
 	}
 
 }
@@ -72,8 +74,9 @@ func seedUser(isAdmin bool, fname, lname, email, password string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("created user:", user.Email)
+	fmt.Printf("%s -> %s/n", user.Email, api.CreateTokenFromUser(user))
 }
+
 func main() {
 	seedHotel("Beluccia", "France", 4)
 	seedHotel("The cozy", "Spain", 3)
