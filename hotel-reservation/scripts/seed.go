@@ -8,6 +8,7 @@ import (
 
 	"github.com/olich538/fulltimegodev/hotel-reservation/api"
 	"github.com/olich538/fulltimegodev/hotel-reservation/db"
+	"github.com/olich538/fulltimegodev/hotel-reservation/db/fixtures"
 	"github.com/olich538/fulltimegodev/hotel-reservation/types"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -84,20 +85,6 @@ func seedUser(isAdmin bool, fname, lname, email, password string) *types.User {
 }
 
 func main() {
-	sunar := seedUser(false, "Sunal", "Booker", "sunario@gmek.com", "super_secret_password")
-	seedUser(true, "admin", "admin", "admin@admin.com", "admin")
-	seedHotel("Beluccia", "France", 4)
-	seedHotel("The cozy", "Spain", 3)
-	hotel := seedHotel("Kyiv", "Ukraine", 3)
-	fmt.Println(hotel)
-	seedRoom("small", true, 89.99, hotel.ID)
-	seedRoom("medium", true, 100.99, hotel.ID)
-	room := seedRoom("large", false, 120.99, hotel.ID)
-	seedBooking(sunar.ID, room.ID, time.Now(), time.Now().AddDate(0, 0, 3))
-
-}
-
-func init() {
 	var err error
 	client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(db.DBURI))
 	if err != nil {
@@ -107,8 +94,37 @@ func init() {
 		log.Fatal(err)
 	}
 
-	hotelStore = db.NewMongoHotelStore(client)
-	userStore = db.NewMongoUserStore(client)
-	roomStore = db.NewMongoRoomStore(client, hotelStore)
-	bookingStore = db.NewMongoBookingStore(client)
+	hotelStore := db.NewMongoHotelStore(client)
+	store := db.Store{
+		User:    db.NewMongoUserStore(client),
+		Room:    db.NewMongoRoomStore(client, hotelStore),
+		Booking: db.NewMongoBookingStore(client),
+		Hotel:   hotelStore,
+	}
+
+	user := fixtures.AddUser(&store, "Sunar", "Booker", false)
+	fmt.Println(user)
+	hotel := fixtures.AddHotel(&store, "France", "Beluccia", 4, nil)
+	fmt.Println(hotel)
+	room := fixtures.AddRoom(&store, "small", true, 120, hotel.ID)
+	fmt.Println(room)
+	booking := fixtures.AddBoooking(&store, user.ID, room.ID, time.Now(), time.Now().AddDate(0, 0, 3))
+	fmt.Println(booking)
+	// sunar := seedUser(false, "Sunal", "Booker", "sunario@gmek.com", "super_secret_password")
+	// sunar := seedUser(false, "Sunal", "Booker", "sunario@gmek.com", "super_secret_password")
+	// sunar := seedUser(false, "Sunal", "Booker", "sunario@gmek.com", "super_secret_password")
+	// seedUser(true, "admin", "admin", "admin@admin.com", "admin")
+	// seedHotel("Beluccia", "France", 4)
+	// seedHotel("The cozy", "Spain", 3)
+	// // hotel := seedHotel("Kyiv", "Ukraine", 3)
+	// fmt.Println(hotel)
+	// seedRoom("small", true, 89.99, hotel.ID)
+	// seedRoom("medium", true, 100.99, hotel.ID)
+	// room := seedRoom("large", false, 120.99, hotel.ID)
+	// seedBooking(sunar.ID, room.ID, time.Now(), time.Now().AddDate(0, 0, 3))
+
+}
+
+func init() {
+
 }
