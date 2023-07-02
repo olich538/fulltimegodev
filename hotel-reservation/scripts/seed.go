@@ -103,28 +103,14 @@ func main() {
 	}
 
 	user := fixtures.AddUser(&store, "Sunar", "Booker", false)
-	fmt.Println(user)
+	fmt.Println("Sunar\n", api.CreateTokenFromUser(user))
+	admin := fixtures.AddUser(&store, "Jon", "Broke", true)
+	fmt.Println("Admin\n", api.CreateTokenFromUser(admin))
 	hotel := fixtures.AddHotel(&store, "France", "Beluccia", 4, nil)
-	fmt.Println(hotel)
 	room := fixtures.AddRoom(&store, "small", true, 120, hotel.ID)
-	fmt.Println(room)
 	booking := fixtures.AddBoooking(&store, user.ID, room.ID, time.Now(), time.Now().AddDate(0, 0, 3))
 	fmt.Println(booking)
-	// sunar := seedUser(false, "Sunal", "Booker", "sunario@gmek.com", "super_secret_password")
-	// sunar := seedUser(false, "Sunal", "Booker", "sunario@gmek.com", "super_secret_password")
-	// sunar := seedUser(false, "Sunal", "Booker", "sunario@gmek.com", "super_secret_password")
-	// seedUser(true, "admin", "admin", "admin@admin.com", "admin")
-	// seedHotel("Beluccia", "France", 4)
-	// seedHotel("The cozy", "Spain", 3)
-	// // hotel := seedHotel("Kyiv", "Ukraine", 3)
-	// fmt.Println(hotel)
-	// seedRoom("small", true, 89.99, hotel.ID)
-	// seedRoom("medium", true, 100.99, hotel.ID)
-	// room := seedRoom("large", false, 120.99, hotel.ID)
-	// seedBooking(sunar.ID, room.ID, time.Now(), time.Now().AddDate(0, 0, 3))
-
 }
 
 func init() {
-
 }

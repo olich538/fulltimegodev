@@ -12,6 +12,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/olich538/fulltimegodev/hotel-reservation/db"
+	"github.com/olich538/fulltimegodev/hotel-reservation/db/fixtures"
 	"github.com/olich538/fulltimegodev/hotel-reservation/types"
 )
 
@@ -35,10 +36,11 @@ func insertTestUser(t *testing.T, userStore db.UserStore) *types.User {
 func TestAuthenticateSuccess(t *testing.T) {
 	tdb := setup(t)
 	defer tdb.teardown(t)
-	insertedUser := insertTestUser(t, tdb.UserStore)
+	// insertedUser := insertTestUser(t, tdb.User)
+	insertedUser := fixtures.AddUser(tdb.Store, "Sunar", "Booker", false)
 
 	app := fiber.New()
-	authHandler := NewAuthHandler(tdb.UserStore)
+	authHandler := NewAuthHandler(tdb.User)
 	app.Post("/auth", authHandler.HandleAuthenticate)
 
 	params := &AuthParams{
@@ -76,10 +78,10 @@ func TestAuthenticateSuccess(t *testing.T) {
 func TestAuthenticateWithWrongPassword(t *testing.T) {
 	tdb := setup(t)
 	defer tdb.teardown(t)
-	insertTestUser(t, tdb.UserStore)
+	insertTestUser(t, tdb.User)
 
 	app := fiber.New()
-	authHandler := NewAuthHandler(tdb.UserStore)
+	authHandler := NewAuthHandler(tdb.User)
 	app.Post("/auth", authHandler.HandleAuthenticate)
 
 	params := &AuthParams{
