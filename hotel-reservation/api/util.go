@@ -3,8 +3,8 @@ package api
 import (
 	"fmt"
 
+	"github.com/fulltimegodev/hotel-reservation/types"
 	"github.com/gofiber/fiber/v2"
-	"github.com/olich538/fulltimegodev/hotel-reservation/types"
 )
 
 func getAuthUser(c *fiber.Ctx) (*types.User, error) {

@@ -39,32 +39,30 @@ type CreateUserParams struct {
 	Password  string `json:"password"`
 }
 
-func (p CreateUserParams) ValidateUserParams() map[string]string {
+func (params CreateUserParams) Validate() map[string]string {
 	errors := map[string]string{}
-	if len(p.FirstName) < minFirstNameLen {
-		errors["firstName"] = fmt.Sprintf("first name len should be at least %d characters", minFirstNameLen)
-		// return errors
+	if len(params.FirstName) < minFirstNameLen {
+		errors["firstName"] = fmt.Sprintf("firstName length should be at least %d characters", minFirstNameLen)
 	}
-	if len(p.LastName) < minLastNameLen {
-		errors["lastName"] = fmt.Sprintf("last name len should be at least %d characters", minLastNameLen)
+	if len(params.LastName) < minLastNameLen {
+		errors["lastName"] = fmt.Sprintf("lastName length should be at least %d characters", minLastNameLen)
 	}
-	if len(p.Password) < minPasswordLen {
-		errors["password"] = fmt.Sprintf("password len should be at least %d characters", minPasswordLen)
+	if len(params.Password) < minPasswordLen {
+		errors["password"] = fmt.Sprintf("password length should be at least %d characters", minPasswordLen)
 	}
-	if !isValidEmail(p.Email) {
-		errors["email"] = fmt.Sprintf("email %s is invalid", p.Email)
-
+	if !isEmailValid(params.Email) {
+		errors["email"] = fmt.Sprintf("email %s is invalid", params.Email)
 	}
 	return errors
 }
 
-func isValidEmail(e string) bool {
-	emailRgx := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	return emailRgx.MatchString(e)
-}
-
 func IsValidPassword(encpw, pw string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(encpw), []byte(pw)) == nil
+}
+
+func isEmailValid(e string) bool {
+	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	return emailRegex.MatchString(e)
 }
 
 type User struct {

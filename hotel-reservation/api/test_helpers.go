@@ -5,14 +5,14 @@ import (
 	"log"
 	"testing"
 
-	"github.com/olich538/fulltimegodev/hotel-reservation/db"
+	"github.com/fulltimegodev/hotel-reservation/db"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
-	testdburi = "mongodb://localhost:27017"
-	dbname    = "hotel-reservation-test"
+	testdburi  = "mongodb://localhost:27017"
+	testDBName = "hotel-reservation-test"
 )
 
 type testdb struct {
@@ -31,15 +31,14 @@ func setup(t *testing.T) *testdb {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// hotelStore := db.NewMongoHotelStore(client)
+	hotelStore := db.NewMongoHotelStore(client)
 	return &testdb{
 		client: client,
-
-		// User:    db.NewMongoUserStore(client),
-		// Room:    db.NewMongoRoomStore(client, hotelStore),
-		// Booking: db.NewMongoBookingStore(client),
-		// Hotel:   db.NewMongoHotelStore(client),
+		Store: &db.Store{
+			Hotel:   hotelStore,
+			User:    db.NewMongoUserStore(client),
+			Room:    db.NewMongoRoomStore(client, hotelStore),
+			Booking: db.NewMongoBookingStore(client),
+		},
 	}
-
 }

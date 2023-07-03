@@ -3,19 +3,16 @@ package db
 import (
 	"context"
 
-	"github.com/olich538/fulltimegodev/hotel-reservation/types"
+	"github.com/fulltimegodev/hotel-reservation/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const hotelColl = "hotels"
-
 type HotelStore interface {
 	InsertHotel(context.Context, *types.Hotel) (*types.Hotel, error)
 	Update(context.Context, bson.M, bson.M) error
 	GetHotels(context.Context, bson.M) ([]*types.Hotel, error)
-	GetRooms(context.Context, bson.M) ([]*types.Room, error)
 	GetHotelByID(context.Context, primitive.ObjectID) (*types.Hotel, error)
 }
 
@@ -27,25 +24,16 @@ type MongoHotelStore struct {
 func NewMongoHotelStore(client *mongo.Client) *MongoHotelStore {
 	return &MongoHotelStore{
 		client: client,
-		coll:   client.Database(DBNAME).Collection(hotelColl),
+		coll:   client.Database(DBNAME).Collection("hotels"),
 	}
 }
 
-func (s *MongoHotelStore) InsertHotel(ctx context.Context, hotel *types.Hotel) (*types.Hotel, error) {
-	res, err := s.coll.InsertOne(ctx, hotel)
-	if err != nil {
+func (s *MongoHotelStore) GetHotelByID(ctx context.Context, id primitive.ObjectID) (*types.Hotel, error) {
+	var hotel types.Hotel
+	if err := s.coll.FindOne(ctx, bson.M{"_id": id}).Decode(&hotel); err != nil {
 		return nil, err
 	}
-	hotel.ID = res.InsertedID.(primitive.ObjectID)
-	return hotel, nil
-}
-
-func (s *MongoHotelStore) Update(ctx context.Context, filter bson.M, update bson.M) error {
-	_, err := s.coll.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return err
-	}
-	return nil
+	return &hotel, nil
 }
 
 func (s *MongoHotelStore) GetHotels(ctx context.Context, filter bson.M) ([]*types.Hotel, error) {
@@ -56,17 +44,20 @@ func (s *MongoHotelStore) GetHotels(ctx context.Context, filter bson.M) ([]*type
 	var hotels []*types.Hotel
 	if err := resp.All(ctx, &hotels); err != nil {
 		return nil, err
-
 	}
 	return hotels, nil
 }
 
-func (s *MongoHotelStore) GetHotelByID(ctx context.Context, id primitive.ObjectID) (*types.Hotel, error) {
-	var hotel types.Hotel
+func (s *MongoHotelStore) Update(ctx context.Context, filter bson.M, update bson.M) error {
+	_, err := s.coll.UpdateOne(ctx, filter, update)
+	return err
+}
 
-	if err := s.coll.FindOne(ctx, bson.M{"_id": id}).Decode(&hotel); err != nil {
+func (s *MongoHotelStore) InsertHotel(ctx context.Context, hotel *types.Hotel) (*types.Hotel, error) {
+	resp, err := s.coll.InsertOne(ctx, hotel)
+	if err != nil {
 		return nil, err
 	}
-
-	return &hotel, nil
+	hotel.ID = resp.InsertedID.(primitive.ObjectID)
+	return hotel, nil
 }

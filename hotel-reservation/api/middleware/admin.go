@@ -3,8 +3,8 @@ package middleware
 import (
 	"fmt"
 
+	"github.com/fulltimegodev/hotel-reservation/types"
 	"github.com/gofiber/fiber/v2"
-	"github.com/olich538/fulltimegodev/hotel-reservation/types"
 )
 
 func AdminAuth(c *fiber.Ctx) error {
@@ -14,7 +14,6 @@ func AdminAuth(c *fiber.Ctx) error {
 	}
 	if !user.IsAdmin {
 		return fmt.Errorf("not authorized")
-
 	}
 	return c.Next()
 }
