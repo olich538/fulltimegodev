@@ -11,21 +11,24 @@ type Error struct {
 func (e Error) Error() string {
 	return e.Err
 }
-
 func NewError(code int, err string) Error {
 	return Error{
 		Code: code,
 		Err:  err,
 	}
 }
-
 func ErrInvalidID() Error {
 	return Error{
 		Code: http.StatusBadRequest,
 		Err:  "invalid ID",
 	}
 }
-
+func ErrBadRequest() Error {
+	return Error{
+		Code: http.StatusBadRequest,
+		Err:  "invalid JSON request",
+	}
+}
 func ErrUnauthorized() Error {
 	return Error{
 		Code: http.StatusUnauthorized,

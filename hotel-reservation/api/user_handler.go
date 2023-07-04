@@ -32,7 +32,7 @@ func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 		return err
 	}
 	if err := c.BodyParser(&params); err != nil {
-		return err
+		return ErrBadRequest()
 	}
 	filter := bson.M{"_id": oid}
 	if err := h.userStore.UpdateUser(c.Context(), filter, params); err != nil {
@@ -52,7 +52,7 @@ func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 	var params types.CreateUserParams
 	if err := c.BodyParser(&params); err != nil {
-		return err
+		return ErrBadRequest()
 	}
 	if errors := params.Validate(); len(errors) > 0 {
 		return c.JSON(errors)
