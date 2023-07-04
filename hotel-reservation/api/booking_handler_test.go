@@ -82,6 +82,7 @@ func TestUserGetBookings(t *testing.T) {
 	defer db.teardown(t)
 
 	var (
+		nonAuthUser    = fixtures.AddUser(db.Store, "Fake", "User", false)
 		user           = fixtures.AddUser(db.Store, "james", "foo", false)
 		hotel          = fixtures.AddHotel(db.Store, "bar hotel", "a", 4, nil)
 		room           = fixtures.AddRoom(db.Store, "small", true, 4.4, hotel.ID)
@@ -109,5 +110,20 @@ func TestUserGetBookings(t *testing.T) {
 	if err := json.NewDecoder(resp.Body).Decode(&bookingResp); err != nil {
 		t.Fatal(err)
 	}
-	fmt.Print(bookingResp)
+	if bookingResp.ID != booking.ID {
+		t.Fatal("Booking ID does not match")
+	}
+	if bookingResp.UserID != booking.UserID {
+		t.Fatal("Booking User ID does not match")
+	}
+	req = httptest.NewRequest("GET", fmt.Sprintf("/%s", booking.ID.Hex()), nil)
+	req.Header.Add("X-Api-Token", CreateTokenFromUser(nonAuthUser))
+	resp, err = app.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode == http.StatusOK {
+		t.Fatalf("non 200 responce %d", resp.StatusCode)
+	}
+
 }
