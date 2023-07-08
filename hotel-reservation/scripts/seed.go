@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"os"
 	"time"
 
 	"github.com/fulltimegodev/hotel-reservation/api"
@@ -16,18 +15,12 @@ import (
 )
 
 func main() {
-
-	var (
-		ctx             = context.Background()
-		mongodbEndpoint = os.Getenv("MONGO_DB_URL")
-		mongodbName     = os.Getenv("MONGO_DB_NAME")
-	)
-
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongodbEndpoint))
+	ctx := context.Background()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(db.DBURI))
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := client.Database(mongodbName).Drop(ctx); err != nil {
+	if err := client.Database(db.DBNAME).Drop(ctx); err != nil {
 		log.Fatal(err)
 	}
 	hotelStore := db.NewMongoHotelStore(client)
@@ -44,14 +37,12 @@ func main() {
 	fmt.Println("admin ->", api.CreateTokenFromUser(admin))
 	hotel := fixtures.AddHotel(store, "some hotel", "bermuda", 5, nil)
 	room := fixtures.AddRoom(store, "large", true, 88.44, hotel.ID)
-	booking := fixtures.AddBooking(store, user.ID, room.ID,
-		time.Now(), time.Now().AddDate(0, 0, 5))
+	booking := fixtures.AddBooking(store, user.ID, room.ID, time.Now(), time.Now().AddDate(0, 0, 5))
 	fmt.Println("booking ->", booking.ID)
 
 	for i := 0; i < 100; i++ {
 		name := fmt.Sprintf("random hotel name %d", i)
 		location := fmt.Sprintf("location %d", i)
 		fixtures.AddHotel(store, name, location, rand.Intn(5)+1, nil)
-
 	}
 }

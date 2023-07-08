@@ -20,14 +20,14 @@ func (h *BookingHandler) HandleCancelBooking(c *fiber.Ctx) error {
 	id := c.Params("id")
 	booking, err := h.store.Booking.GetBookingByID(c.Context(), id)
 	if err != nil {
-		return ErrNotFound("booking")
+		return ErrNotResourceNotFound("booking")
 	}
 	user, err := getAuthUser(c)
 	if err != nil {
-		return ErrUnauthorized()
+		return ErrUnAuthorized()
 	}
 	if booking.UserID != user.ID {
-		return ErrUnauthorized()
+		return ErrUnAuthorized()
 	}
 	if err := h.store.Booking.UpdateBooking(c.Context(), c.Params("id"), bson.M{"canceled": true}); err != nil {
 		return err
@@ -38,7 +38,7 @@ func (h *BookingHandler) HandleCancelBooking(c *fiber.Ctx) error {
 func (h *BookingHandler) HandleGetBookings(c *fiber.Ctx) error {
 	bookings, err := h.store.Booking.GetBookings(c.Context(), bson.M{})
 	if err != nil {
-		return ErrNotFound("bookings")
+		return ErrNotResourceNotFound("bookings")
 	}
 	return c.JSON(bookings)
 }
@@ -47,14 +47,14 @@ func (h *BookingHandler) HandleGetBooking(c *fiber.Ctx) error {
 	id := c.Params("id")
 	booking, err := h.store.Booking.GetBookingByID(c.Context(), id)
 	if err != nil {
-		return ErrNotFound("bookings")
+		return ErrNotResourceNotFound("booking")
 	}
 	user, err := getAuthUser(c)
 	if err != nil {
-		return ErrUnauthorized()
+		return ErrUnAuthorized()
 	}
 	if booking.UserID != user.ID {
-		return ErrUnauthorized()
+		return ErrUnAuthorized()
 	}
 	return c.JSON(booking)
 }

@@ -13,107 +13,41 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func TestAdminGetBookings(t *testing.T) {
+func TestUserGetBooking(t *testing.T) {
 	db := setup(t)
 	defer db.teardown(t)
 
 	var (
-		adminUser = fixtures.AddUser(db.Store, "Adam", "Super", true)
-		user      = fixtures.AddUser(db.Store, "james", "foo", false)
-		hotel     = fixtures.AddHotel(db.Store, "bar hotel", "a", 4, nil)
-		room      = fixtures.AddRoom(db.Store, "small", true, 4.4, hotel.ID)
-		from      = time.Now()
-		till      = from.AddDate(0, 0, 5)
-		booking   = fixtures.AddBooking(db.Store, user.ID, room.ID, from, till)
-		app       = fiber.New(fiber.Config{ErrorHandler: ErrorHandler})
-	)
-	_ = booking
-	admin := app.Group("/", JWTAuthentication(db.User), AdminAuth)
-
-	bookingHandler := NewBookingHandler(db.Store)
-	admin.Get("/", bookingHandler.HandleGetBookings)
-	req := httptest.NewRequest("GET", "/", nil)
-
-	req.Header.Add("X-Api-Token", CreateTokenFromUser(adminUser))
-
-	resp, err := app.Test(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("non 200 responce %d", resp.StatusCode)
-	}
-	var bookings []*types.Booking
-	if err := json.NewDecoder(resp.Body).Decode(&bookings); err != nil {
-		t.Fatal(err)
-	}
-	if len(bookings) != 1 {
-		t.Fatalf("expecte 1 booking got %d", len(bookings))
-	}
-	// if !reflect.DeepEqual(booking, bookings[0]) {
-	// 	fmt.Printf("%+v\n", booking)
-	// 	fmt.Printf("%+v\n", bookings[0])
-
-	// 	t.Fatal("expected bookings to be equal got")
-	// }
-	if booking.ID != bookings[0].ID || booking.UserID != bookings[0].UserID {
-		t.Fatal("Booking ID and/or User ID not match")
-	}
-	fmt.Println(bookings)
-
-	// test non admin cannot access the bookings
-	rn := httptest.NewRequest("GET", "/", nil)
-
-	req.Header.Add("X-Api-Token", CreateTokenFromUser(user))
-
-	resp, err = app.Test(rn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resp.StatusCode == http.StatusOK {
-		t.Fatalf("expected a non 200 status code got  %d", resp.StatusCode)
-	}
-
-}
-
-func TestUserGetBookings(t *testing.T) {
-	db := setup(t)
-	defer db.teardown(t)
-
-	var (
-		nonAuthUser    = fixtures.AddUser(db.Store, "Fake", "User", false)
+		nonAuthUser    = fixtures.AddUser(db.Store, "Jimmy", "watercooler", false)
 		user           = fixtures.AddUser(db.Store, "james", "foo", false)
 		hotel          = fixtures.AddHotel(db.Store, "bar hotel", "a", 4, nil)
 		room           = fixtures.AddRoom(db.Store, "small", true, 4.4, hotel.ID)
 		from           = time.Now()
 		till           = from.AddDate(0, 0, 5)
 		booking        = fixtures.AddBooking(db.Store, user.ID, room.ID, from, till)
-		app            = fiber.New()
-		bookingHandler = NewBookingHandler(db.Store)
+		app            = fiber.New(fiber.Config{ErrorHandler: ErrorHandler})
 		route          = app.Group("/", JWTAuthentication(db.User))
+		bookingHandler = NewBookingHandler(db.Store)
 	)
-
 	route.Get("/:id", bookingHandler.HandleGetBooking)
 	req := httptest.NewRequest("GET", fmt.Sprintf("/%s", booking.ID.Hex()), nil)
-
 	req.Header.Add("X-Api-Token", CreateTokenFromUser(user))
-
 	resp, err := app.Test(req)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("non 200 responce %d", resp.StatusCode)
+		t.Fatalf("non 200 code got %d", resp.StatusCode)
 	}
 	var bookingResp *types.Booking
 	if err := json.NewDecoder(resp.Body).Decode(&bookingResp); err != nil {
 		t.Fatal(err)
 	}
 	if bookingResp.ID != booking.ID {
-		t.Fatal("Booking ID does not match")
+		t.Fatalf("expected %s got %s", booking.ID, bookingResp.ID)
 	}
 	if bookingResp.UserID != booking.UserID {
-		t.Fatal("Booking User ID does not match")
+		t.Fatalf("expected %s got %s", booking.UserID, bookingResp.UserID)
 	}
 	req = httptest.NewRequest("GET", fmt.Sprintf("/%s", booking.ID.Hex()), nil)
 	req.Header.Add("X-Api-Token", CreateTokenFromUser(nonAuthUser))
@@ -121,8 +55,60 @@ func TestUserGetBookings(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resp.StatusCode != http.StatusUnauthorized {
-		t.Fatalf("expected status code unauthorized but got %d", resp.StatusCode)
+	if resp.StatusCode == http.StatusOK {
+		t.Fatalf("expected a non 200 status code got %d", resp.StatusCode)
+	}
+}
+
+func TestAdminGetBookings(t *testing.T) {
+	db := setup(t)
+	defer db.teardown(t)
+
+	var (
+		adminUser      = fixtures.AddUser(db.Store, "admin", "admin", true)
+		user           = fixtures.AddUser(db.Store, "james", "foo", false)
+		hotel          = fixtures.AddHotel(db.Store, "bar hotel", "a", 4, nil)
+		room           = fixtures.AddRoom(db.Store, "small", true, 4.4, hotel.ID)
+		from           = time.Now()
+		till           = from.AddDate(0, 0, 5)
+		booking        = fixtures.AddBooking(db.Store, user.ID, room.ID, from, till)
+		app            = fiber.New()
+		admin          = app.Group("/", JWTAuthentication(db.User), AdminAuth)
+		bookingHandler = NewBookingHandler(db.Store)
+	)
+	admin.Get("/", bookingHandler.HandleGetBookings)
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Add("X-Api-Token", CreateTokenFromUser(adminUser))
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("non 200 response got %d", resp.StatusCode)
+	}
+	var bookings []*types.Booking
+	if err := json.NewDecoder(resp.Body).Decode(&bookings); err != nil {
+		t.Fatal(err)
+	}
+	if len(bookings) != 1 {
+		t.Fatalf("expected 1 booking got %d", len(bookings))
+	}
+	have := bookings[0]
+	if have.ID != booking.ID {
+		t.Fatalf("expected %s got %s", booking.ID, have.ID)
+	}
+	if have.UserID != booking.UserID {
+		t.Fatalf("expected %s got %s", booking.UserID, have.UserID)
 	}
 
+	// test non-admin cannot access the bookings
+	req = httptest.NewRequest("GET", "/", nil)
+	req.Header.Add("X-Api-Token", CreateTokenFromUser(user))
+	resp, err = app.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("expected status unauthorized but got %d", resp.StatusCode)
+	}
 }

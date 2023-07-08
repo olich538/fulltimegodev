@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"log"
-	"os"
 	"testing"
 
 	"github.com/fulltimegodev/hotel-reservation/db"
@@ -22,8 +21,7 @@ type testdb struct {
 }
 
 func (tdb *testdb) teardown(t *testing.T) {
-	dbname := os.Getenv(db.MongoDBNameEnvName)
-	if err := tdb.client.Database(dbname).Drop(context.TODO()); err != nil {
+	if err := tdb.client.Database(db.DBNAME).Drop(context.TODO()); err != nil {
 		t.Fatal(err)
 	}
 }

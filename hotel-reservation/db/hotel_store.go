@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"os"
 
 	"github.com/fulltimegodev/hotel-reservation/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,8 +12,8 @@ import (
 
 type HotelStore interface {
 	InsertHotel(context.Context, *types.Hotel) (*types.Hotel, error)
-	Update(context.Context, Map, bson.M) error
-	GetHotels(context.Context, bson.M, *PaginationFilter) ([]*types.Hotel, error)
+	Update(context.Context, Map, Map) error
+	GetHotels(context.Context, Map, *Pagination) ([]*types.Hotel, error)
 	GetHotelByID(context.Context, string) (*types.Hotel, error)
 }
 
@@ -24,29 +23,28 @@ type MongoHotelStore struct {
 }
 
 func NewMongoHotelStore(client *mongo.Client) *MongoHotelStore {
-	dbname := os.Getenv(MongoDBNameEnvName)
 	return &MongoHotelStore{
 		client: client,
-		coll:   client.Database(dbname).Collection("hotels"),
+		coll:   client.Database(DBNAME).Collection("hotels"),
 	}
 }
 
 func (s *MongoHotelStore) GetHotelByID(ctx context.Context, id string) (*types.Hotel, error) {
-	var hotel types.Hotel
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.coll.FindOne(ctx, oid).Decode(&hotel); err != nil {
+	var hotel types.Hotel
+	if err := s.coll.FindOne(ctx, bson.M{"_id": oid}).Decode(&hotel); err != nil {
 		return nil, err
 	}
 	return &hotel, nil
 }
 
-func (s *MongoHotelStore) GetHotels(ctx context.Context, filter bson.M, pFilter *PaginationFilter) ([]*types.Hotel, error) {
+func (s *MongoHotelStore) GetHotels(ctx context.Context, filter Map, pag *Pagination) ([]*types.Hotel, error) {
 	opts := options.FindOptions{}
-	opts.SetSkip((pFilter.Page - 1) * pFilter.Limit)
-	opts.SetLimit(pFilter.Limit)
+	opts.SetSkip((pag.Page - 1) * pag.Limit)
+	opts.SetLimit(pag.Limit)
 	resp, err := s.coll.Find(ctx, filter, &opts)
 	if err != nil {
 		return nil, err
@@ -58,7 +56,7 @@ func (s *MongoHotelStore) GetHotels(ctx context.Context, filter bson.M, pFilter 
 	return hotels, nil
 }
 
-func (s *MongoHotelStore) Update(ctx context.Context, filter Map, update bson.M) error {
+func (s *MongoHotelStore) Update(ctx context.Context, filter Map, update Map) error {
 	_, err := s.coll.UpdateOne(ctx, filter, update)
 	return err
 }

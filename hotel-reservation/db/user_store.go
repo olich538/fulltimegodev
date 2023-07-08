@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/fulltimegodev/hotel-reservation/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,11 +12,11 @@ import (
 
 const userColl = "users"
 
+type Map map[string]any
+
 type Dropper interface {
 	Drop(context.Context) error
 }
-
-type Map map[string]any
 
 type UserStore interface {
 	Dropper
@@ -36,10 +35,9 @@ type MongoUserStore struct {
 }
 
 func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
-	dbname := os.Getenv(MongoDBNameEnvName)
 	return &MongoUserStore{
 		client: client,
-		coll:   client.Database(dbname).Collection(userColl),
+		coll:   client.Database(DBNAME).Collection(userColl),
 	}
 }
 

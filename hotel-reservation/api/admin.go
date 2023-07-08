@@ -8,10 +8,10 @@ import (
 func AdminAuth(c *fiber.Ctx) error {
 	user, ok := c.Context().UserValue("user").(*types.User)
 	if !ok {
-		return ErrUnauthorized()
+		return ErrUnAuthorized()
 	}
 	if !user.IsAdmin {
-		return ErrUnauthorized()
+		return ErrUnAuthorized()
 	}
 	return c.Next()
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/fulltimegodev/hotel-reservation/db"
 	"github.com/fulltimegodev/hotel-reservation/types"
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -22,20 +21,15 @@ func NewUserHandler(userStore db.UserStore) *UserHandler {
 
 func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 	var (
-		//values bson.M
 		params types.UpdateUserParams
 		userID = c.Params("id")
 	)
-	oid, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return err
-	}
 	if err := c.BodyParser(&params); err != nil {
 		return ErrBadRequest()
 	}
-	filter := db.Map{"_id": oid}
+	filter := db.Map{"_id": userID}
 	if err := h.userStore.UpdateUser(c.Context(), filter, params); err != nil {
-		return ErrNotFound("user")
+		return err
 	}
 	return c.JSON(map[string]string{"updated": userID})
 }
@@ -43,7 +37,7 @@ func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 	userID := c.Params("id")
 	if err := h.userStore.DeleteUser(c.Context(), userID); err != nil {
-		return ErrNotFound("user")
+		return err
 	}
 	return c.JSON(map[string]string{"deleted": userID})
 }
@@ -74,9 +68,9 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	user, err := h.userStore.GetUserByID(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return ErrNotFound("user")
+			return c.JSON(map[string]string{"error": "not found"})
 		}
-		return ErrNotFound("user")
+		return err
 	}
 	return c.JSON(user)
 }
@@ -84,7 +78,7 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
 	users, err := h.userStore.GetUsers(c.Context())
 	if err != nil {
-		return ErrNotFound("user")
+		return ErrNotResourceNotFound("user")
 	}
 	return c.JSON(users)
 }
