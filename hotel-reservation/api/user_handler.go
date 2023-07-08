@@ -33,7 +33,7 @@ func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(&params); err != nil {
 		return ErrBadRequest()
 	}
-	filter := db.Filter{"_id": oid}
+	filter := db.Map{"_id": oid}
 	if err := h.userStore.UpdateUser(c.Context(), filter, params); err != nil {
 		return ErrNotFound("user")
 	}
