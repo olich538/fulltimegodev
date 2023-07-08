@@ -61,7 +61,8 @@ func (h *HotelHandler) HandleGetHotels(c *fiber.Ctx) error {
 	filter := db.Map{
 		"rating": params.Rating,
 	}
-	hotels, err := h.store.Hotel.GetHotels(c.Context(), primitive.M(filter), &params.PaginationFilter)
+	hotels, err := h.store.Hotel.GetHotels(c.Context(),
+		primitive.M(filter), &params.PaginationFilter)
 	if err != nil {
 		return ErrNotFound("hotels")
 	}
